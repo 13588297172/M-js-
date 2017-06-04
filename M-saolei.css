@@ -2,3 +2,5 @@
 #main{background:#ddd;position:relative;}
 #main div{border:1px solid #888;font-weight:bold;height:19px;line-height:18px;position:absolute;text-align:center;width:19px;}
 .hidden{background:url(blank.bmp) -1px -1px;}
+.flag{background:url(flag.bmp) -1px -1px;}
+.check{background:url(ask.bmp) -1px -1px;}

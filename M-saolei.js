@@ -1,13 +1,13 @@
 var mineArray,  //地雷数组
-    lastNum,  //剩余雷数
-    countNum,  //未被揭开的方块数
+    leftMineNum,//lastNum,  //剩余雷数
+    unopenedBlockNum,//countNum,  //未被揭开的方块数
     inGame = 0,  //游戏状态，0为结束，1为进行中，2为初始化完毕但未开始
     startTime;  //开始时间
 
 function init(x,y,mine){
-    countNum = x * y;
+    unopenedBlockNum = x * y;
     inGame = 2;
-    lastNum = mine;
+    leftMineNum = mine;
     //构建地雷数组
     mineArray = new Array(y + 1);//
     $.each(mineArray,function(key){
@@ -59,5 +59,56 @@ function init(x,y,mine){
     	}
     }
     $('#main').html(block).width(x * 20 ).height(y * 20 );
-    $('#lastnum').text(lastNum);
+    $('#lastnum').text(leftMineNum);
 }
+
+$(function(){
+	//处理鼠标松开事件
+	$('main').mouseup(function(e){
+		//获取所点击方块的坐标
+		var clicked = $(e.target);
+		var id = clicked.attr('id');
+		var cX = parseInt(substring(1,id.indexOf('-')));
+		var cY = parseInt(substring(id.indexOf('-') + 1));
+        //能够点击main部分只有两种情况，游戏结束时无点击处理
+		if(inGame == 1){
+			if(e.which == 1){
+				if (clicked.hasClass('hidden') && !clicked.hasClass('flag') ) {
+					//openBlock(cX,cY);
+				}else if( !clicked.hasClass('hidden') ){//
+					//openNearBlock(cX,cY);
+				} 
+			}else if(e.which == 3 && clicked.hasClass('hidden') ){
+				if(clicked.hasClass('flag')) {
+					clicked.removeClass('flag');
+                    leftMineNum ++;
+                    unopenedBlockNum ++;  
+                    if( $('#check').attr('checked') ) {
+                    	clicked.addClass('check');
+                    }
+				} else if(clicked.hasClass('check')) {
+					clicked.removeClass('check');
+				} else {
+					clicked.addClass('flag');
+                    leftMineNum --;
+                    unopenedBlockNum --;
+				}
+				$('#lastnum').text(leftMineNum);  
+			}
+			if(leftMineNum == unopenedBlockNum) {
+				//endGame(1);
+			}
+		}else if(inGame == 2){
+			if(e.which == 1){
+				//openBlock(cX,cY);
+				inGame = 1;
+			  /*var now = new Date();
+				startTime = now.getTime();
+				timer();*/
+			}
+		}
+	});
+	//阻止默认右击事件
+	$('#main').bind('contextmenu', function(){ return false; }); //
+});
+
