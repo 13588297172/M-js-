@@ -53,7 +53,7 @@ function init(x,y,mine){
     }
     //将地雷数组绘制到相应html元素上
     var block = '';
-    for(var i = 1; i <= y; i ++){
+    for(var i = 1; i <= y; i ++){//
     	for(var j = 1; j <= x; j ++){                                                    
     		 block += '<div id="b' + i + '-' + j + '" style="left:' + (j - 1) * 20 + 'px;top:' + (i - 1) * 20 + 'px;" class="hidden"></div>';
     	}
@@ -64,18 +64,18 @@ function init(x,y,mine){
 
 $(function(){
 	//处理鼠标松开事件
-	$('main').mouseup(function(e){
+	$('#main').mouseup(function(e){
 		//获取所点击方块的坐标
 		var clicked = $(e.target);
 		var id = clicked.attr('id');
 		var cX = parseInt(substring(1,id.indexOf('-')));
 		var cY = parseInt(substring(id.indexOf('-') + 1));
-        //能够点击main部分只有两种情况，游戏结束时无点击处理
+        //左击松开或右击松开两种情况
 		if(inGame == 1){
 			if(e.which == 1){
 				if (clicked.hasClass('hidden') && !clicked.hasClass('flag') ) {
 					//openBlock(cX,cY);
-				}else if( !clicked.hasClass('hidden') ){//
+				}else if( !clicked.hasClass('hidden') ){//!hidden即null和num(点null的openNearBlock无意义)
 					//openNearBlock(cX,cY);
 				} 
 			}else if(e.which == 3 && clicked.hasClass('hidden') ){
@@ -109,6 +109,39 @@ $(function(){
 		}
 	});
 	//阻止默认右击事件
-	$('#main').bind('contextmenu', function(){ return false; }); //
+	$('#main').bind('contextmenu', function(){ return false; }); 
 });
+
+function openBlock(x,y){
+    //获取当前格子
+	var current = $('#b' + x + '-' + y);
+    //点到雷、点到数字、点到空的三种情况
+    if(mineArray[x][y] == -1) {
+        if(inGame == 1) {  
+            current.addClass('cbomb');
+            //endGame();
+        } else if(inGame == 2) {      //init(列、行、雷数)
+            init(mineArray[0].length - 1, mineArray.length - 1, lastNum);
+            openBlock(x, y);
+        } //
+    }else if(mineArray[x][y] > 0) { //
+        current.html(mineArray[x][y]).addClass('num' + mineArray[x][y]).removeClass('hidden'); 
+        if(current.hasClass('check')) current.removeClass('check');
+        unopenedBlockNum --;  //
+    }else if(mineArray[x][y] == 0) { //
+        current.removeClass('hidden');
+        if(current.hasClass('check')) current.removeClass('check');
+        unopenedBlockNum --;
+        //点击到周边无雷的方块时，自动揭开周围方块
+        var row = mineArray.length - 1, col = mineArray[0].length - 1;                //......
+        if(x > 1   && y > 1   && $('#b' + (x - 1) + '-' + (y - 1)).hasClass('hidden') && mineArray[x - 1][y -1 ] != -1 )    openBlock(x - 1, y - 1);
+        if(x > 1   &&                  $('#b' + (x - 1) + '-' + y).hasClass('hidden') &&     mineArray[x - 1][y] != -1 )    openBlock(x - 1, y);
+        if(x > 1   && y < col && $('#b' + (x - 1) + '-' + (y + 1)).hasClass('hidden') && mineArray[x - 1][y + 1] != -1 )    openBlock(x - 1, y + 1);
+        if(y < col &&                  $('#b' + x + '-' + (y + 1)).hasClass('hidden') &&     mineArray[x][y + 1] != -1 )    openBlock(x, y + 1);
+        if(x < row && y < col && $('#b' + (x + 1) + '-' + (y + 1)).hasClass('hidden') && mineArray[x + 1][y + 1] != -1 )    openBlock(x + 1, y + 1);
+        if(x < row &&                  $('#b' + (x + 1) + '-' + y).hasClass('hidden') &&     mineArray[x + 1][y] != -1 )    openBlock(x + 1, y);
+        if(x < row && y > 1   && $('#b' + (x + 1) + '-' + (y - 1)).hasClass('hidden') && mineArray[x +1 ][y - 1] != -1 )    openBlock(x + 1, y - 1);
+        if(y > 1   &&                  $('#b' + x + '-' + (y - 1)).hasClass('hidden') &&     mineArray[x][y - 1] != -1 )    openBlock(x, y - 1);
+    }
+}
 
