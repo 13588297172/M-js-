@@ -112,6 +112,54 @@ $(function(){
 	$('#main').bind('contextmenu', function(){ return false; }); 
 });
 
+function openNearBlock(x, y){
+	var flagNum = 0;
+	for(i = x - 1; i < x + 2; i ++) {
+        for(j = y - 1; j < y + 2; j ++) {
+            if(mineArray[i][j] != undefined) {
+                if($('#b' + i + '-' + j).hasClass('flag')) flagNum ++;  
+            }
+        }
+    }
+    //当周围的雷都标记完时，打开剩下的方块
+    if(flagNum == mineArray[x][y] ) {  
+        for(i = x - 1; i < x + 2; i ++) {
+            for(j = y - 1; j < y + 2; j ++) {
+                if( !$('#b' + i + '-' + j).hasClass('flag') && $('#b' + i + '-' + j).hasClass('hidden')) //openBlock(i, j);
+            }
+        }
+    }
+}
+
+function endGame(isWin){
+	inGame = 0;                                  //
+	for(var i = 1, row = mineArray.length - 1; i <= row; i ++) {
+        for(var j = 1, col = mineArray[0].length - 1; j <= col; j ++) {
+            if(isWin) {
+                if($('#b' + i + '-' + j).hasClass('hidden') && !$('#b' + i + '-' + j).hasClass('flag')) $('#b' + i + '-' + j).addClass('flag');
+                lastNum = 0;
+                $('#lastnum').text(lastNum);
+            } else {
+                openBlock(i, j);
+            }
+        }
+    }
+    $('#warning').text(isWin ? 'You Win!' : 'You Lose!');
+}
+
+function timer(){
+	if(inGame == 1) {  
+        var now = new Date(),
+            ms = now.getTime();
+        $('#time').text(Math.ceil((ms - startTime) / 1000));          
+        
+        setTimeout(function() { timer(); }, 500);
+                                             
+    } else if(inGame == 2) {
+        $('#time').text('0');
+    }
+}
+/*
 function openBlock(x,y){
     //获取当前格子
 	var current = $('#b' + x + '-' + y);
@@ -144,4 +192,4 @@ function openBlock(x,y){
         if(y > 1   &&                  $('#b' + x + '-' + (y - 1)).hasClass('hidden') &&     mineArray[x][y - 1] != -1 )    openBlock(x, y - 1);
     }
 }
-
+*/
