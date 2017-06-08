@@ -1,7 +1,24 @@
 <html>
   <head>
     <title>ok.html</title>
+<script type="text/javascript">
+        function tiao() {
+          clearInterval(mytime);
+          window.open("saolei.html","_self");
+        }
 
+        setTimeout("tiao()",5000);
+
+        function changeSec() {
+           //µ√µΩmyspan÷µ
+           $('myspan').innerText=$('myspan').innerText-1;
+        }
+
+         function $(id) {
+        return document.getElementById(id);
+      }
+        var mytime = setInterval("changeSec()",1000);
+    </script>
   </head>
 
   <body>
