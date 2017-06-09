@@ -2,7 +2,46 @@
 <html>
   <head>
     <title>zhuce.html</title>
-
+ <script type="text/javascript">
+var a=0;
+function register() {
+	if(!checkname()){
+		return false;
+	}else if (!checkpass()) {
+		return false;
+	} else if(!checkemail()){
+		return false;
+	} 
+	alert("注册成功！");
+	return true;
+}
+function checkname()	
+{   
+	var name = document.getElementById("uName").value;	
+	var ts = document.getElementById("namets");
+	if(name.length<3|| name.length>15)	
+	{	
+	    ts.innerHTML ="用户名长度须在3-15之间!";
+	    ts.style.color="red";
+	    return false;
+	}
+	if(a==0){
+	for(var i=0;i<localStorage.length;i++){
+		var userName=localStorage.key(i);
+		if(name==userName){
+			ts.innerHTML ="用户名已存在!";
+		    ts.style.color='red';
+			return false;
+		}
+	}
+	}
+	ts.innerHTML ='用户名可以使用！';
+	ts.style.color='green';
+	localStorage.setItem(name,checkpass());
+	a=1;
+	return true;
+}    </script>
+  </head>
   <body>
 <span style="white-space:pre">                </span>
                     <h3>用户注册</h3>  
