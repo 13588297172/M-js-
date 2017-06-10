@@ -1,10 +1,27 @@
 <html>
   <head>
     <title>ok.html</title>
+<script type="text/javascript">
+        function tiao() {
+          clearInterval(mytime);
+          window.open("saolei.html","_self");
+        }
 
+        setTimeout("tiao()",5000);
+
+        function changeSec() {
+           //得到myspan值
+           $('myspan').innerText=$('myspan').innerText-1;
+        }
+
+         function $(id) {
+        return document.getElementById(id);
+      }
+        var mytime = setInterval("changeSec()",1000);
+    </script>
   </head>
 
   <body>
-    登录成功，<span id="myspan">5</span>秒后自动跳转到游戏页面
+    登录成功111，<span id="myspan">5</span>秒后自动跳转到游戏页面
   </body>
 </html>
