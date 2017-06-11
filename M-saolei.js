@@ -60,6 +60,7 @@ function init(x,y,mine){
     }
     $('#main').html(block).width(x * 20 ).height(y * 20 );
     $('#lastnum').text(leftMineNum);
+    $('#warning').html('');
 }
 
 $(function(){
@@ -68,16 +69,19 @@ $(function(){
 		//获取所点击方块的坐标
 		var clicked = $(e.target);
 		var id = clicked.attr('id');
-		var cX = parseInt(substring(1,id.indexOf('-')));
-		var cY = parseInt(substring(id.indexOf('-') + 1));
-        //左击松开或右击松开两种情况
+		var cX = parseInt(id.substring(1,id.indexOf('-')));
+		var cY = parseInt(id.substring(id.indexOf('-') + 1));
+        //游戏进行中
 		if(inGame == 1){
+
+            //左键松开
 			if(e.which == 1){
 				if (clicked.hasClass('hidden') && !clicked.hasClass('flag') ) {
-					//openBlock(cX,cY);
-				}else if( !clicked.hasClass('hidden') ){//!hidden即null和num(点null的openNearBlock无意义)
-					//openNearBlock(cX,cY);
-				} 
+					openBlock(cX,cY);
+				}else if( !clicked.hasClass('hidden') ){ //!hidden即null和num(点null的openNearBlock无意义)
+					openNearBlock(cX,cY);
+				}   
+            //右键松开  
 			}else if(e.which == 3 && clicked.hasClass('hidden') ){
 				if(clicked.hasClass('flag')) {
 					clicked.removeClass('flag');
@@ -95,38 +99,44 @@ $(function(){
 				}
 				$('#lastnum').text(leftMineNum);  
 			}
+
 			if(leftMineNum == unopenedBlockNum) {
-				//endGame(1);
+				endGame(1);
 			}
+
+        //游戏初始化完毕
 		}else if(inGame == 2){
 			if(e.which == 1){
-				//openBlock(cX,cY);
+				openBlock(cX,cY);
 				inGame = 1;
-			  /*var now = new Date();
+			    var now = new Date();
 				startTime = now.getTime();
-				timer();*/
+				timer();
 			}
 		}
+
 	});
+
 	//阻止默认右击事件
 	$('#main').bind('contextmenu', function(){ return false; }); 
 });
 
 function openNearBlock(x, y){
-	var flagNum = 0;
-	for(i = x - 1; i < x + 2; i ++) {
+    var flagNum = 0, hiddenNum = 0;
+    for(i = x - 1; i < x + 2; i ++) {
         for(j = y - 1; j < y + 2; j ++) {
             if(mineArray[i][j] != undefined) {
                 if($('#b' + i + '-' + j).hasClass('flag')) flagNum ++;  
+                if($('#b' + i + '-' + j).hasClass('hidden')) hiddenNum ++;
             }
         }
     }
-    //当周围的雷都标记完时，打开剩下的方块
+    //当雷数标记完,揭开周围没揭开的方块（标记了旗子但没雷的逻辑在openBlock）
     if(flagNum == mineArray[x][y] ) {  
         for(i = x - 1; i < x + 2; i ++) {
             for(j = y - 1; j < y + 2; j ++) {
-                if( !$('#b' + i + '-' + j).hasClass('flag') && $('#b' + i + '-' + j).hasClass('hidden')) //openBlock(i, j);
-            }
+                if(mineArray[i][j] >= 0 && $('#b' + i + '-' + j).hasClass('hidden')) openBlock(i, j);
+            }     //没有以上条件，会把所有方块都揭开，为什么？？？(讲道理能揭开的都是无雷的，因为标了旗子，若标错了，会以错雷处理，但从结果看是调用了endGame)
         }
     }
 }
@@ -136,9 +146,10 @@ function endGame(isWin){
 	for(var i = 1, row = mineArray.length - 1; i <= row; i ++) {
         for(var j = 1, col = mineArray[0].length - 1; j <= col; j ++) {
             if(isWin) {
-                if($('#b' + i + '-' + j).hasClass('hidden') && !$('#b' + i + '-' + j).hasClass('flag')) $('#b' + i + '-' + j).addClass('flag');
-                lastNum = 0;
-                $('#lastnum').text(lastNum);
+                if($('#b' + i + '-' + j).hasClass('hidden') && !$('#b' + i + '-' + j).hasClass('flag') )  
+                    $('#b' + i + '-' + j).addClass('flag');
+                leftMineNum = 0;
+                $('#lastnum').text(leftMineNum);
             } else {
                 openBlock(i, j);
             }
@@ -159,37 +170,50 @@ function timer(){
         $('#time').text('0');
     }
 }
-/*
+
 function openBlock(x,y){
     //获取当前格子
 	var current = $('#b' + x + '-' + y);
     //点到雷、点到数字、点到空的三种情况
     if(mineArray[x][y] == -1) {
         if(inGame == 1) {  
-            current.addClass('cbomb');
-            //endGame();
+            current.addClass('blood');//cbomb
+            endGame();
         } else if(inGame == 2) {      //init(列、行、雷数)
-            init(mineArray[0].length - 1, mineArray.length - 1, lastNum);
+            init(mineArray[0].length - 1, mineArray.length - 1, leftMineNum);
             openBlock(x, y);
-        } //
-    }else if(mineArray[x][y] > 0) { //
-        current.html(mineArray[x][y]).addClass('num' + mineArray[x][y]).removeClass('hidden'); 
-        if(current.hasClass('check')) current.removeClass('check');
-        unopenedBlockNum --;  //
-    }else if(mineArray[x][y] == 0) { //
-        current.removeClass('hidden');
-        if(current.hasClass('check')) current.removeClass('check');
-        unopenedBlockNum --;
-        //点击到周边无雷的方块时，自动揭开周围方块
-        var row = mineArray.length - 1, col = mineArray[0].length - 1;                //......
-        if(x > 1   && y > 1   && $('#b' + (x - 1) + '-' + (y - 1)).hasClass('hidden') && mineArray[x - 1][y -1 ] != -1 )    openBlock(x - 1, y - 1);
-        if(x > 1   &&                  $('#b' + (x - 1) + '-' + y).hasClass('hidden') &&     mineArray[x - 1][y] != -1 )    openBlock(x - 1, y);
-        if(x > 1   && y < col && $('#b' + (x - 1) + '-' + (y + 1)).hasClass('hidden') && mineArray[x - 1][y + 1] != -1 )    openBlock(x - 1, y + 1);
-        if(y < col &&                  $('#b' + x + '-' + (y + 1)).hasClass('hidden') &&     mineArray[x][y + 1] != -1 )    openBlock(x, y + 1);
-        if(x < row && y < col && $('#b' + (x + 1) + '-' + (y + 1)).hasClass('hidden') && mineArray[x + 1][y + 1] != -1 )    openBlock(x + 1, y + 1);
-        if(x < row &&                  $('#b' + (x + 1) + '-' + y).hasClass('hidden') &&     mineArray[x + 1][y] != -1 )    openBlock(x + 1, y);
-        if(x < row && y > 1   && $('#b' + (x + 1) + '-' + (y - 1)).hasClass('hidden') && mineArray[x +1 ][y - 1] != -1 )    openBlock(x + 1, y - 1);
-        if(y > 1   &&                  $('#b' + x + '-' + (y - 1)).hasClass('hidden') &&     mineArray[x][y - 1] != -1 )    openBlock(x, y - 1);
+        } else if(inGame == 0) {  //endGame中调用openBlock的情况  
+            if(!current.hasClass('flag')) current.addClass('bomb');
+        }
+    }else if(mineArray[x][y] > 0) { 
+    	if(current.hasClass('flag')) {  //openNearBlock中调用openBlock的情况
+            current.addClass('wrong');
+            if(inGame) endGame();
+        } else {     
+            current.html(mineArray[x][y]).addClass('num' + mineArray[x][y]).removeClass('hidden'); 
+            if(current.hasClass('check')) current.removeClass('check');
+            if(inGame) unopenedBlockNum --;  
+        }
+    }else if(mineArray[x][y] == 0) {
+    	if(current.hasClass('flag')) {  //openNearBlock中调用openBlock的情况
+            current.addClass('wrong');
+            if(inGame) endGame();
+        } else {
+            current.removeClass('hidden');
+            if(current.hasClass('check')) current.removeClass('check');
+            if(inGame) {  
+                unopenedBlockNum --;
+                var row = mineArray.length - 1, col = mineArray[0].length - 1; //
+                if(x > 1   && y > 1   && $('#b' + (x - 1) + '-' + (y - 1)).hasClass('hidden')  )    openBlock(x - 1, y - 1);
+                if(x > 1   &&                  $('#b' + (x - 1) + '-' + y).hasClass('hidden')  )    openBlock(x - 1, y);
+                if(x > 1   && y < col && $('#b' + (x - 1) + '-' + (y + 1)).hasClass('hidden')  )    openBlock(x - 1, y + 1);
+                if(y < col &&                  $('#b' + x + '-' + (y + 1)).hasClass('hidden')  )    openBlock(x, y + 1);
+                if(x < row && y < col && $('#b' + (x + 1) + '-' + (y + 1)).hasClass('hidden')  )    openBlock(x + 1, y + 1);
+                if(x < row &&                  $('#b' + (x + 1) + '-' + y).hasClass('hidden')  )    openBlock(x + 1, y);
+                if(x < row && y > 1   && $('#b' + (x + 1) + '-' + (y - 1)).hasClass('hidden')  )    openBlock(x + 1, y - 1);
+                if(y > 1   &&                  $('#b' + x + '-' + (y - 1)).hasClass('hidden')  )    openBlock(x, y - 1);
+            }
+        }
     }
 }
-*/
+
