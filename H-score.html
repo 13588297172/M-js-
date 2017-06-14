@@ -1,0 +1,33 @@
+<html>
+<head>
+ 
+<title>score.html</title>
+<script src="jquery-1.4.2.js" type="text/javascript"></script>
+<script type="text/javascript">
+  function tiao() {
+          window.open("saolei.html","_self");
+        }
+ </script>
+</head>
+
+
+
+
+ 
+   <body>  
+
+    <h3>积分表</h3>  
+        你的昵称为：<input type=text id="txt2"  value="黄令成" /> 
+    	<br>
+        花费时间：<input type=text id="txt1" />  
+        <br>
+        游戏等级为：<input type=text id="txt3"  value ="初级"/> 
+    <input type="button" value="返回" style="height: 30px;width: 60px;font-size: 20px;"onclick="return tiao()" />
+        <script type="text/javascript">  
+            var txt1 = document.getElementById("txt1");  
+            txt1.value = location.search.match(new RegExp("[\?\&]mydata1=([^\&]+)", "i"))[1]; 
+        
+      
+        </script>  
+    </body>
+</html>

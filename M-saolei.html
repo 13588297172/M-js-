@@ -1,27 +1,40 @@
-<html>
+﻿<html>
 <head>
-	<title>M-saolei.html</title>
-  
+
+<title>Insert title here</title>
+<meta http-equiv="Content-Type" content="text/html; charset=gbk">
+<script src="jquery-1.4.2.js" type="text/javascript"></script>
 <link  type="text/css" rel="stylesheet" href="saolei.css"> 
 </head>
 <body>
-    <div id="menu">
-       <a href="javascript:;" onclick="init(10,10,10);">初级</a>
-       <a href="javascript:;" onclick="init(16,16,40);">中级</a>
-       <a href="javascript:;" onclick="init(30,16,99);">高级</a>
-       <input type="checkbox" id="check">
-       <label for="check">是否使用标记？</label>
-    </div>
+	<div id="menu">
+    <a href="javascript:;" onclick="init(10,10,10);">初级</a>
+    <a href="javascript:;" onclick="init(16,16,40);">中级</a>
+    <a href="javascript:;" onclick="init(30,16,99);">高级</a>
+    <input type="checkbox" id="check" /><label for="check">是否使用标记(?)</label>
+</div> 
 
-    <div id="submenu">
-       剩余雷数：
-       <span id="lastnum"></span>
-       时间：
-       <span id="time"></span>
-       秒
-       <span id="warning"></span>
-    </div>
+<div id="submenu">
+    剩余雷数：<span id="lastnum"></span>
+    时间：<span id="time"></span>秒
+    <span id="warning"></span>
+</div>
+<div id="main"></div>
+<script src="saolei.js" type="text/javascript"></script>
+ 
+输入你的昵称:<input type="text" id="txta" >  
+输入你的时间: <input type="text" id="txtb" > 
+输入你的等级: <input type="text" id="txtc" > 
+<br />   
+        <input type=button value="提交积分表" onclick="tiaozhuan()" />   
+<script type="text/javascript">  
+            var tiaozhuan = function(){  
+                document.location.href ='score.html?mydata1=' + $("#txtb").val();
+   
+            }  
+        </script>  
+        <br /> 
 
-    <div id="main"></div>
+
 </body>
 </html>
