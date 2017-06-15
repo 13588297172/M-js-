@@ -9,9 +9,9 @@ function init(x,y,mine){
     inGame = 2;
     leftMineNum = mine;
     //构建地雷数组
-    mineArray = new Array(y + 1);//
+    mineArray = new Array(y + 2);//
     $.each(mineArray,function(key){
-    	mineArray[key] = new Array(x + 1);//
+    	mineArray[key] = new Array(x + 2);//
     });
     //通过遍历地雷数组，将地雷数组中的各个值初始化为0
     for(var i = 1; i <= y; i ++){
@@ -60,6 +60,7 @@ function init(x,y,mine){
     }
     $('#main').html(block).width(x * 20 ).height(y * 20 );
     $('#lastnum').text(leftMineNum);
+    $('#time').text('0');
     $('#warning').html('');
 }
 
@@ -121,30 +122,20 @@ $(function(){
 	$('#main').bind('contextmenu', function(){ return false; }); 
 });
 
-function openNearBlock(x, y){
-    var flagNum = 0, hiddenNum = 0;
-    for(i = x - 1; i < x + 2; i ++) {
-        for(j = y - 1; j < y + 2; j ++) {
-            if(mineArray[i][j] != undefined) {
-                if($('#b' + i + '-' + j).hasClass('flag')) flagNum ++;  
-                if($('#b' + i + '-' + j).hasClass('hidden')) hiddenNum ++;
-            }
-        }
-    }
-    //当雷数标记完,揭开周围没揭开的方块（标记了旗子但没雷的逻辑在openBlock）
-    if(flagNum == mineArray[x][y] ) {  
-        for(i = x - 1; i < x + 2; i ++) {
-            for(j = y - 1; j < y + 2; j ++) {
-                if(mineArray[i][j] >= 0 && $('#b' + i + '-' + j).hasClass('hidden')) openBlock(i, j);
-            }     //没有以上条件，会把所有方块都揭开，为什么？？？(讲道理能揭开的都是无雷的，因为标了旗子，若标错了，会以错雷处理，但从结果看是调用了endGame)
-        }
-    }
+function timer(){
+    if(inGame == 1) {  
+        var now = new Date();
+        var nowTime = now.getTime();
+        $('#time').text(Math.ceil((nowTime - startTime) / 1000));          
+        
+        setTimeout(function() { timer(); }, 500);                                        
+    } 
 }
 
 function endGame(isWin){
-	inGame = 0;                                  //
-	for(var i = 1, row = mineArray.length - 1; i <= row; i ++) {
-        for(var j = 1, col = mineArray[0].length - 1; j <= col; j ++) {
+    inGame = 0;                                  //
+    for(var i = 1, row = mineArray.length - 2; i <= row; i ++) {
+        for(var j = 1, col = mineArray[0].length - 2; j <= col; j ++) {
             if(isWin) {
                 if($('#b' + i + '-' + j).hasClass('hidden') && !$('#b' + i + '-' + j).hasClass('flag') )  
                     $('#b' + i + '-' + j).addClass('flag');
@@ -158,17 +149,31 @@ function endGame(isWin){
     $('#warning').text(isWin ? 'You Win!' : 'You Lose!');
 }
 
-function timer(){
-	if(inGame == 1) {  
-        var now = new Date(),
-            ms = now.getTime();
-        $('#time').text(Math.ceil((ms - startTime) / 1000));          
+function openNearBlock(x, y){
+    var flagNum = 0;
+
+    var row = mineArray.length - 2, col = mineArray[0].length - 2; //
+    if(x > 1   && y > 1   && $('#b' + (x - 1) + '-' + (y - 1)).hasClass('flag')  ) flagNum ++;   
+    if(x > 1   &&                  $('#b' + (x - 1) + '-' + y).hasClass('flag')  ) flagNum ++;
+    if(x > 1   && y < col && $('#b' + (x - 1) + '-' + (y + 1)).hasClass('flag')  ) flagNum ++;    
+    if(y < col &&                  $('#b' + x + '-' + (y + 1)).hasClass('flag')  ) flagNum ++;   
+    if(x < row && y < col && $('#b' + (x + 1) + '-' + (y + 1)).hasClass('flag')  ) flagNum ++;
+    if(x < row &&                  $('#b' + (x + 1) + '-' + y).hasClass('flag')  ) flagNum ++;
+    if(x < row && y > 1   && $('#b' + (x + 1) + '-' + (y - 1)).hasClass('flag')  ) flagNum ++;
+    if(y > 1   &&                  $('#b' + x + '-' + (y - 1)).hasClass('flag')  ) flagNum ++;
         
-        setTimeout(function() { timer(); }, 500);
-                                             
-    } else if(inGame == 2) {
-        $('#time').text('0');
+    //当雷数标记完,揭开周围没揭开的方块（标记了旗子但没雷的逻辑在openBlock）
+    if(flagNum == mineArray[x][y] ) {  
+        if(mineArray[x-1][y-1] >= 0 && x > 1   && y > 1   && $('#b' + (x - 1) + '-' + (y - 1)).hasClass('hidden')  )    openBlock(x - 1, y - 1);
+        if(mineArray[x-1][y] >= 0   && x > 1   &&                  $('#b' + (x - 1) + '-' + y).hasClass('hidden')  )    openBlock(x - 1, y);
+        if(mineArray[x-1][y+1] >= 0 && x > 1   && y < col && $('#b' + (x - 1) + '-' + (y + 1)).hasClass('hidden')  )    openBlock(x - 1, y + 1);
+        if(mineArray[x][y+1] >= 0   && y < col &&                  $('#b' + x + '-' + (y + 1)).hasClass('hidden')  )    openBlock(x, y + 1);
+        if(mineArray[x+1][y+1] >= 0 && x < row && y < col && $('#b' + (x + 1) + '-' + (y + 1)).hasClass('hidden')  )    openBlock(x + 1, y + 1);
+        if(mineArray[x+1][y] >= 0   && x < row &&                  $('#b' + (x + 1) + '-' + y).hasClass('hidden')  )    openBlock(x + 1, y);
+        if(mineArray[x+1][y-1] >= 0 && x < row && y > 1   && $('#b' + (x + 1) + '-' + (y - 1)).hasClass('hidden')  )    openBlock(x + 1, y - 1);
+        if(mineArray[x][y-1] >= 0   && y > 1   &&                  $('#b' + x + '-' + (y - 1)).hasClass('hidden')  )    openBlock(x, y - 1);
     }
+    
 }
 
 function openBlock(x,y){
@@ -178,7 +183,7 @@ function openBlock(x,y){
     if(mineArray[x][y] == -1) {
         if(inGame == 1) {  
             current.addClass('blood');//cbomb
-            endGame();
+            endGame(0);
         } else if(inGame == 2) {      //init(列、行、雷数)
             init(mineArray[0].length - 1, mineArray.length - 1, leftMineNum);
             openBlock(x, y);
@@ -188,22 +193,25 @@ function openBlock(x,y){
     }else if(mineArray[x][y] > 0) { 
     	if(current.hasClass('flag')) {  //openNearBlock中调用openBlock的情况
             current.addClass('wrong');
-            if(inGame) endGame();
+            if(inGame) 
+            endGame(0);
         } else {     
             current.html(mineArray[x][y]).addClass('num' + mineArray[x][y]).removeClass('hidden'); 
             if(current.hasClass('check')) current.removeClass('check');
-            if(inGame) unopenedBlockNum --;  
+            if(inGame) 
+            unopenedBlockNum --;  
         }
     }else if(mineArray[x][y] == 0) {
     	if(current.hasClass('flag')) {  //openNearBlock中调用openBlock的情况
             current.addClass('wrong');
-            if(inGame) endGame();
+            if(inGame) 
+            endGame(0);
         } else {
             current.removeClass('hidden');
             if(current.hasClass('check')) current.removeClass('check');
             if(inGame) {  
                 unopenedBlockNum --;
-                var row = mineArray.length - 1, col = mineArray[0].length - 1; //
+                var row = mineArray.length - 2, col = mineArray[0].length - 2; //
                 if(x > 1   && y > 1   && $('#b' + (x - 1) + '-' + (y - 1)).hasClass('hidden')  )    openBlock(x - 1, y - 1);
                 if(x > 1   &&                  $('#b' + (x - 1) + '-' + y).hasClass('hidden')  )    openBlock(x - 1, y);
                 if(x > 1   && y < col && $('#b' + (x - 1) + '-' + (y + 1)).hasClass('hidden')  )    openBlock(x - 1, y + 1);
@@ -217,3 +225,34 @@ function openBlock(x,y){
     }
 }
 
+
+/*
+        if(mineArray[x-1][y-1] >= 0 && x > 1   && y > 1   && $('#b' + (x - 1) + '-' + (y - 1)).hasClass('hidden')  )    openBlock(x - 1, y - 1);
+        if(mineArray[x-1][y] >= 0   && x > 1   &&                  $('#b' + (x - 1) + '-' + y).hasClass('hidden')  )    openBlock(x - 1, y);
+        if(mineArray[x-1][y+1] >= 0 && x > 1   && y < col && $('#b' + (x - 1) + '-' + (y + 1)).hasClass('hidden')  )    openBlock(x - 1, y + 1);
+        if(mineArray[x][y+1] >= 0   && y < col &&                  $('#b' + x + '-' + (y + 1)).hasClass('hidden')  )    openBlock(x, y + 1);
+        if(mineArray[x+1][y+1] >= 0 && x < row && y < col && $('#b' + (x + 1) + '-' + (y + 1)).hasClass('hidden')  )    openBlock(x + 1, y + 1);
+        if(mineArray[x+1][y] >= 0   && x < row &&                  $('#b' + (x + 1) + '-' + y).hasClass('hidden')  )    openBlock(x + 1, y);
+        if(mineArray[x+1][y-1] >= 0 && x < row && y > 1   && $('#b' + (x + 1) + '-' + (y - 1)).hasClass('hidden')  )    openBlock(x + 1, y - 1);
+        if(mineArray[x][y-1] >= 0   && y > 1   &&                  $('#b' + x + '-' + (y - 1)).hasClass('hidden')  )    openBlock(x, y - 1);
+ */
+/*
+if(!$('#b' + (x - 1) + '-' + (y - 1)).hasClass('flag') && x > 1   && y > 1   && $('#b' + (x - 1) + '-' + (y - 1)).hasClass('hidden')  )    openBlock(x - 1, y - 1);
+        if(!$('#b' + (x - 1) + '-' + y).hasClass('flag')   && x > 1   &&                  $('#b' + (x - 1) + '-' + y).hasClass('hidden')  )    openBlock(x - 1, y);
+        if(!$('#b' + (x - 1) + '-' + (y + 1)).hasClass('flag') && x > 1   && y < col && $('#b' + (x - 1) + '-' + (y + 1)).hasClass('hidden')  )    openBlock(x - 1, y + 1);
+        if(!$('#b' + x + '-' + (y + 1)).hasClass('flag')   && y < col &&                  $('#b' + x + '-' + (y + 1)).hasClass('hidden')  )    openBlock(x, y + 1);
+        if(!$('#b' + (x + 1) + '-' + (y + 1)).hasClass('flag') && x < row && y < col && $('#b' + (x + 1) + '-' + (y + 1)).hasClass('hidden')  )    openBlock(x + 1, y + 1);
+        if(!$('#b' + (x + 1) + '-' + y).hasClass('flag')   && x < row &&                  $('#b' + (x + 1) + '-' + y).hasClass('hidden')  )    openBlock(x + 1, y);
+        if(!$('#b' + (x + 1) + '-' + (y - 1)).hasClass('flag') && x < row && y > 1   && $('#b' + (x + 1) + '-' + (y - 1)).hasClass('hidden')  )    openBlock(x + 1, y - 1);
+        if(!$('#b' + x + '-' + (y - 1)).hasClass('flag')   && y > 1   &&                  $('#b' + x + '-' + (y - 1)).hasClass('hidden')  )    openBlock(x, y - 1);
+ */
+/*
+        if( x > 1   && y > 1   && $('#b' + (x - 1) + '-' + (y - 1)).hasClass('hidden')  )    openBlock(x - 1, y - 1);
+        if( x > 1   &&                  $('#b' + (x - 1) + '-' + y).hasClass('hidden')  )    openBlock(x - 1, y);
+        if( x > 1   && y < col && $('#b' + (x - 1) + '-' + (y + 1)).hasClass('hidden')  )    openBlock(x - 1, y + 1);
+        if( y < col &&                  $('#b' + x + '-' + (y + 1)).hasClass('hidden')  )    openBlock(x, y + 1);
+        if( x < row && y < col && $('#b' + (x + 1) + '-' + (y + 1)).hasClass('hidden')  )    openBlock(x + 1, y + 1);
+        if( x < row &&                  $('#b' + (x + 1) + '-' + y).hasClass('hidden')  )    openBlock(x + 1, y);
+        if( x < row && y > 1   && $('#b' + (x + 1) + '-' + (y - 1)).hasClass('hidden')  )    openBlock(x + 1, y - 1);
+        if( y > 1   &&                  $('#b' + x + '-' + (y - 1)).hasClass('hidden')  )    openBlock(x, y - 1);
+ */
